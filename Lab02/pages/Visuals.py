@@ -44,6 +44,24 @@ line_data = pd.DataFrame({
 })
 st.line_chart(line_data, x="Week", y="Study hours")
 
+# Compare the current chart's statistics with the last chart shown.
+mean_hours = line_data["Study hours"].mean()
+median_hours = line_data["Study hours"].median()
+if "previous_mean" not in st.session_state:
+    st.session_state["previous_mean"] = mean_hours
+    st.session_state["previous_median"] = median_hours
+
+mean_change = mean_hours - st.session_state["previous_mean"]
+median_change = median_hours - st.session_state["previous_median"]
+mean_column, median_column = st.columns(2)
+mean_column.metric("Mean study hours", f"{mean_hours:.2f}", f"{mean_change:+.2f} hours")
+median_column.metric("Median study hours", f"{median_hours:.2f}", f"{median_change:+.2f} hours")
+st.caption("Changes compare with the previous chart shown. The first view starts at 0 change.")
+
+# Save these values so the next interaction can use them.
+st.session_state["previous_mean"] = mean_hours
+st.session_state["previous_median"] = median_hours
+
 
 st.divider()
 st.header("Part 2: Survey Study Sessions (CSV)")
@@ -81,5 +99,23 @@ else:
         })
         st.write(f"Study sessions for {selected_subject}, in the order they were submitted.")
         st.line_chart(session_data, x="Session", y="Study hours")
+
+        # Keep separate statistics for the survey chart.
+        survey_mean = session_data["Study hours"].mean()
+        survey_median = session_data["Study hours"].median()
+        if "previous_survey_mean" not in st.session_state:
+            st.session_state["previous_survey_mean"] = survey_mean
+            st.session_state["previous_survey_median"] = survey_median
+
+        survey_mean_change = survey_mean - st.session_state["previous_survey_mean"]
+        survey_median_change = survey_median - st.session_state["previous_survey_median"]
+        survey_mean_column, survey_median_column = st.columns(2)
+        survey_mean_column.metric("Mean session hours", f"{survey_mean:.2f}", f"{survey_mean_change:+.2f} hours")
+        survey_median_column.metric("Median session hours", f"{survey_median:.2f}", f"{survey_median_change:+.2f} hours")
+        st.caption("Changes compare with the previous survey chart shown. The first view starts at 0 change.")
+
+        st.session_state["previous_survey_mean"] = survey_mean
+        st.session_state["previous_survey_median"] = survey_median
+
         if len(subject_data) == 1:
             st.caption("Add another session for this subject to see a line between sessions.")
